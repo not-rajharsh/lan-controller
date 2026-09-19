@@ -1,0 +1,307 @@
+/* ---------------------------------------------------------------------
+   Every interactive control (joystick, buttons, scroll wheel) is
+   position: fixed and fully positioned/sized via inline styles set from
+   JS (see applyLayoutStyles() in app.js), driven by a layout object
+   persisted in localStorage. This file only defines their *appearance*,
+   never their position/size.
+
+   touch-action: none is CRITICAL for latency & feel — it tells the
+   browser not to reserve the touch for its own scrolling/zooming
+   gesture recognition, which otherwise adds a perceptible delay before
+   the first touchmove event fires.
+--------------------------------------------------------------------- */
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #0d0f14;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overscroll-behavior: none;
+}
+
+.status {
+  position: fixed;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  z-index: 200;
+  transition: background 0.2s ease;
+}
+.status.connected {
+  background: rgba(46, 204, 113, 0.18);
+  color: #2ecc71;
+  border: 1px solid #2ecc71;
+}
+.status.disconnected {
+  background: rgba(231, 76, 60, 0.18);
+  color: #e74c3c;
+  border: 1px solid #e74c3c;
+}
+
+/* ---------------- Settings ---------------- */
+
+.settings-toggle {
+  position: fixed;
+  top: 6px;
+  left: 6px;
+  z-index: 200;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid #2a2f3a;
+  background: #1c2029;
+  color: #aab2c0;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.settings-panel {
+  position: fixed;
+  top: 48px;
+  left: 6px;
+  z-index: 200;
+  width: min(80vw, 300px);
+  max-height: 84vh;
+  overflow-y: auto;
+  background: #14161c;
+  border: 1px solid #2a2f3a;
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+.settings-panel.hidden {
+  display: none;
+}
+.settings-panel h3 {
+  margin: 0 0 10px;
+  color: #e6e9ef;
+  font-size: 14px;
+}
+.setting-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+  color: #aab2c0;
+  font-size: 12px;
+}
+.setting-row.checkbox-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+.setting-row input[type="range"] {
+  width: 100%;
+}
+.settings-action {
+  width: 100%;
+  padding: 9px;
+  border-radius: 8px;
+  border: 1px solid #4a90e2;
+  background: transparent;
+  color: #4a90e2;
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+.settings-action.active {
+  background: #4a90e2;
+  color: #fff;
+}
+.settings-action.secondary {
+  border-color: #555c6b;
+  color: #aab2c0;
+}
+.edit-hint {
+  color: #6a7180;
+  font-size: 11px;
+  margin: -2px 0 12px;
+  line-height: 1.4;
+}
+.settings-close {
+  width: 100%;
+  padding: 8px;
+  border-radius: 8px;
+  border: none;
+  background: #4a90e2;
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+/* ---------------- Look-around swipe pad ---------------- */
+
+.look-zone {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 60vw;
+  height: 100%;
+  z-index: 1; /* below every control, so controls always win hit-testing */
+}
+
+.look-hint {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(170, 178, 192, 0.35);
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  pointer-events: none;
+  animation: hintFade 3.5s ease forwards;
+}
+@keyframes hintFade {
+  0%   { opacity: 1; }
+  70%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ---------------- Shared control base ---------------- */
+
+.control-el {
+  position: fixed;
+  z-index: 10;
+  /* left/top set via JS as %, transform centers the element on that point */
+  transform: translate(-50%, -50%);
+}
+
+body.edit-mode .control-el {
+  outline: 2px dashed rgba(90, 163, 255, 0.8);
+  outline-offset: 3px;
+}
+body.edit-mode .look-zone {
+  pointer-events: none;
+}
+
+.resize-handle {
+  display: none;
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #4a90e2;
+  border: 2px solid #fff;
+  z-index: 11;
+}
+body.edit-mode .resize-handle {
+  display: block;
+}
+
+/* ---------------- Joystick ---------------- */
+
+.joystick-base {
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, #1c2029, #14161c);
+  border: 2px solid #2a2f3a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.5);
+}
+
+.joystick-stick {
+  width: 40%;
+  height: 40%;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #4a90e2, #357abd);
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.5);
+  will-change: transform;
+}
+.joystick-stick.active {
+  background: linear-gradient(145deg, #5aa3ff, #3d82d1);
+}
+
+/* ---------------- Action buttons ---------------- */
+
+.action-btn {
+  border: none;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: transform, filter;
+  transition: filter 0.06s ease;
+}
+.action-btn.pressed {
+  filter: brightness(1.3);
+}
+
+.attack-btn {
+  background: radial-gradient(circle at 35% 35%, #ff6b6b, #c0392b);
+  box-shadow: 0 4px 14px rgba(231, 76, 60, 0.45);
+}
+.use-btn {
+  background: radial-gradient(circle at 35% 35%, #ffd166, #d4a017);
+  box-shadow: 0 4px 14px rgba(212, 160, 23, 0.4);
+}
+.jump-btn {
+  background: radial-gradient(circle at 35% 35%, #6bcB77, #2f9e44);
+  box-shadow: 0 4px 14px rgba(47, 158, 68, 0.4);
+}
+
+/* ---------------- Scroll wheel ---------------- */
+
+.scroll-wheel {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.scroll-track {
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #1c2029, #14161c);
+  border: 2px solid #2a2f3a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555c6b;
+  font-size: 20px;
+  letter-spacing: 2px;
+  writing-mode: vertical-rl;
+  box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.5);
+}
+.scroll-track.active {
+  border-color: #4a90e2;
+  color: #4a90e2;
+}
+
+/* Landscape-forced hint for phones held in portrait */
+@media (orientation: portrait) {
+  body::after {
+    content: "Rotate your phone to landscape";
+    position: fixed;
+    inset: 0;
+    background: #0d0f14;
+    color: #aaa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    z-index: 999;
+  }
+}

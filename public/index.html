@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>LAN Game Controller</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div id="status" class="status disconnected">Connecting...</div>
+
+  <button id="settingsToggle" class="settings-toggle" aria-label="Settings">⚙</button>
+
+  <div id="settingsPanel" class="settings-panel hidden">
+    <h3>Controls</h3>
+
+    <button id="editToggle" class="settings-action">Edit Layout</button>
+    <p class="edit-hint">Drag any control to move it. Drag the blue dot on its corner to resize it.</p>
+
+    <label class="setting-row">
+      <span>Look sensitivity</span>
+      <input type="range" id="lookSensitivity" min="0.5" max="4" value="1.8" step="0.1" />
+    </label>
+
+    <label class="setting-row checkbox-row">
+      <span>Show scroll wheel</span>
+      <input type="checkbox" id="scrollEnabledToggle" checked />
+    </label>
+
+    <button id="resetLayout" class="settings-action secondary">Reset Layout</button>
+    <button id="settingsClose" class="settings-close">Done</button>
+  </div>
+
+  <!-- Invisible full right-side swipe pad for look-around. Sits BELOW the
+       other controls (lower z-index) so touches on a control always hit
+       the control first. -->
+  <div class="look-zone" id="lookZone">
+    <div class="look-hint" id="lookHint">swipe to look around</div>
+  </div>
+
+  <!-- Every control below is independently draggable/resizable. Position
+       and size are applied via JS from the saved layout (see app.js). -->
+
+  <div class="joystick-base control-el" id="joystickBase" data-key="joystick">
+    <div class="joystick-stick" id="joystickStick"></div>
+    <div class="resize-handle"></div>
+  </div>
+
+  <button class="action-btn jump-btn control-el" id="btnJump" data-key="jump" data-action="space">
+    JUMP
+    <div class="resize-handle"></div>
+  </button>
+
+  <button class="action-btn use-btn control-el" id="btnUse" data-key="use" data-action="mouse-right">
+    USE
+    <div class="resize-handle"></div>
+  </button>
+
+  <button class="action-btn attack-btn control-el" id="btnAttack" data-key="attack" data-action="mouse-left">
+    ATK
+    <div class="resize-handle"></div>
+  </button>
+
+  <div class="scroll-wheel control-el" id="scrollWheel" data-key="scroll">
+    <div class="scroll-track" id="scrollTrack">
+      <div class="scroll-grip">⋮</div>
+    </div>
+    <div class="resize-handle"></div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

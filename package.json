@@ -1,0 +1,17 @@
+{
+  "name": "phone-game-controller",
+  "version": "1.0.0",
+  "description": "Ultra-low-latency LAN web app that turns your phone into a game controller (WASD + mouse buttons) for your laptop.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5",
+    "@nut-tree-fork/nut-js": "^4.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
